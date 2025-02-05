@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { AiModelSourceType, AiModelType, ModelAbilities } from '@/types/aiModel';
+import { AiModelConfig, AiModelType, ModelAbilities } from '@/types/aiModel';
 import { SmoothingParams } from '@/types/llm';
 
 export const AiProviderSourceEnum = {
@@ -18,6 +18,7 @@ export const AiProviderSDKEnum = {
   Azure: 'azure',
   Bedrock: 'bedrock',
   Cloudflare: 'cloudflare',
+  Doubao: 'doubao',
   Google: 'google',
   Huggingface: 'huggingface',
   Ollama: 'ollama',
@@ -85,6 +86,7 @@ export interface AiProviderSettings {
    */
   sdkType?: AiProviderSDKType;
 
+  showAddNewModel?: boolean;
   /**
    * whether show api key in the provider config
    * so provider like ollama don't need api key field
@@ -157,8 +159,8 @@ export interface AiProviderDetailItem {
 // Update
 export const UpdateAiProviderSchema = z.object({
   config: z.object({}).passthrough().optional(),
-  description: z.string().optional(),
-  logo: z.string().optional(),
+  description: z.string().nullable().optional(),
+  logo: z.string().nullable().optional(),
   name: z.string(),
   sdkType: z.enum(['openai', 'anthropic']).optional(),
 });
@@ -167,7 +169,7 @@ export type UpdateAiProviderParams = z.infer<typeof UpdateAiProviderSchema>;
 
 export const UpdateAiProviderConfigSchema = z.object({
   checkModel: z.string().optional(),
-  fetchOnClient: z.boolean().optional(),
+  fetchOnClient: z.boolean().nullable().optional(),
   keyVaults: z.object({}).passthrough().optional(),
 });
 
@@ -182,21 +184,31 @@ export interface AiProviderSortMap {
 
 export interface EnabledProvider {
   id: string;
+  logo?: string;
   name?: string;
-  source: AiModelSourceType;
+  source: AiProviderSourceType;
 }
 
 export interface EnabledAiModel {
   abilities: ModelAbilities;
+  config?: AiModelConfig;
   contextWindowTokens?: number;
   displayName?: string;
+  enabled?: boolean;
   id: string;
   providerId: string;
+  sort?: number;
   type: AiModelType;
 }
 
-export interface AiProviderInitState {
+export interface AiProviderRuntimeConfig {
+  fetchOnClient?: boolean;
+  keyVaults: Record<string, string>;
+  settings: AiProviderSettings;
+}
+
+export interface AiProviderRuntimeState {
   enabledAiModels: EnabledAiModel[];
   enabledAiProviders: EnabledProvider[];
-  keyVaults: Record<string, object>;
+  runtimeConfig: Record<string, AiProviderRuntimeConfig>;
 }
